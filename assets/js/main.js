@@ -3,6 +3,7 @@ Vue.component('section-01', {
     <h1>Section 1</h1>
   </div>`,
     mounted() {
+        this.$parent.activeSection = '#' + this.$el.getAttribute('id')
         this.$el.addEventListener('wheel', this.handleScroll)
     },
     destroyed() {
@@ -68,7 +69,7 @@ Vue.component('section-04', {
 Vue.component('nav-section', {
     template: `<nav id="navSection" class='nav-bar'> 
     <ul class='nav-menu'>
-      <li v-for='(section, key) in sections' class='nav-item' v-bind:class="section.active ? 'active' : ''">
+      <li v-for='(section, key) in sections' class='nav-item' :class="section.link === $parent.activeSection ? 'active' : ''">
         <a :href="section.link" v-on:click="activeLink(key)" class='nav-link'>{{ section.name }}</a>
       </li>
     </ul>
@@ -78,43 +79,41 @@ Vue.component('nav-section', {
         return {
             sections: [{
                     'name': 'home',
-                    'link': '#section01',
-                    'active': true
+                    'link': '#section01'
                 },
                 {
                     'name': 'works',
-                    'link': '#section02',
-                    'active': false
+                    'link': '#section02'
                 },
                 {
                     'name': 'skills',
-                    'link': '#section03',
-                    'active': false
+                    'link': '#section03'
                 },
                 {
                     'name': 'contact',
-                    'link': '#section04',
-                    'active': false
+                    'link': '#section04'
                 }
             ]
         }
     },
+    props: ['sectionActive'],
     methods: {
         activeLink(key) {
-            for (var i = 0; i < this.sections.length; i++) {
-                this.sections[i].active = false
-            }
-            this.sections[key].active = true
             this.$parent.nextSection(key)
+            this.$parent.activeSection = this.sections[key].link
         }
     }
 })
 
 var app = new Vue({
     el: '#app',
+    data: function () {
+        return {
+            activeSection: ''
+        }
+    },
     methods: {
         nextSection: function (el) {
-
             let id = null
             if (isNaN(el)) {
                 event.preventDefault()
@@ -126,15 +125,15 @@ var app = new Vue({
                     const prevNavLinks = document.querySelector('.nav-item.active')
                     const nextLink = document.querySelector("[href*='" + id + "']")
                     // Component Nav 
+                    this.activeSection = id
                     if (prevNavLinks && nextLink) {
                         prevNavLinks.classList.remove('active')
                         nextLink.parentElement.classList.add('active')
                     }
                     if (delta.indexOf('-') === -1) {
                         el.setAttribute('style', 'transform:translateY(100vh)')
-                    } else {
-                        document.querySelector(id).setAttribute('style', 'transform:translateY(-100vh)')
                     }
+                    document.querySelector(id).setAttribute('style', 'transform:translateY(-100vh)')
                 }
             } else {
                 id = event.target.getAttribute('href')
